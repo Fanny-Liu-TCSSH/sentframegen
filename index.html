@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英文作文起手式練功房 | Sentence Starters Gym</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Markdown Parser -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Poppins:wght@300;400;600&display=swap');
+        
+        body {
+            font-family: 'Poppins', 'Noto Sans TC', sans-serif;
+            background-color: #f0f4f8;
+            color: #334155;
+        }
+
+        .gradient-header {
+            background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s;
+        }
+
+        .starter-pill {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .starter-pill:hover {
+            transform: translateY(-2px);
+            background-color: #e0f2fe;
+            border-color: #3b82f6;
+        }
+        
+        .mode-btn.active {
+            background-color: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        
+        .mode-btn {
+            background-color: white;
+            color: #64748b;
+            border: 1px solid #cbd5e1;
+        }
+
+        /* Loading Spinner */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .feedback-content h3 { font-size: 1.1em; font-weight: bold; margin-top: 10px; margin-bottom: 5px; color: #1e40af; }
+        .feedback-content ul { list-style-type: disc; margin-left: 20px; }
+        .feedback-content p { margin-bottom: 8px; }
+    </style>
+</head>
+<body class="min-h-screen pb-10">
+
+    <!-- Header -->
+    <header class="gradient-header text-white p-6 shadow-lg">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold"><i class="fas fa-pen-nib mr-2"></i>英文作文起手式練功房</h1>
+                <p class="text-blue-100 text-sm mt-1">Fanny Teacher's Writing Class - Sentence Starter Practice</p>
+            </div>
+            <div class="hidden md:block text-4xl opacity-20">
+                <i class="fas fa-book-open"></i>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto p-4 space-y-6">
+
+        <!-- Mode Selection -->
+        <div class="flex justify-center gap-4 mb-2">
+            <button onclick="switchMode('guided')" id="btnGuided" class="mode-btn active px-6 py-2 rounded-full font-bold transition flex items-center shadow-sm">
+                <i class="fas fa-shoe-prints mr-2"></i> 逐句引導模式 (Guided)
+            </button>
+            <button onclick="switchMode('free')" id="btnFree" class="mode-btn px-6 py-2 rounded-full font-bold transition flex items-center shadow-sm">
+                <i class="fas fa-feather-alt mr-2"></i> 自由寫作模式 (Free)
+            </button>
+        </div>
+
+        <!-- 1. Topic Selection -->
+        <section id="selectionSection" class="card p-6 border-l-8 border-blue-500">
+            <h2 class="text-xl font-bold mb-4 flex items-center text-gray-800">
+                <span class="bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm">1</span>
+                選擇歷屆考題 (Select a Topic)
+            </h2>
+            <div class="flex flex-col md:flex-row gap-4">
+                <select id="examSelect" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none bg-gray-50 text-gray-700">
+                    <option value="" disabled selected>請選擇一個年度題目...</option>
+                    <!-- Options populated by JS -->
+                </select>
+                <button onclick="pickRandomTopic()" class="bg-teal-500 hover:bg-teal-600 text-white px-6 py-3 rounded-lg font-medium transition flex items-center justify-center whitespace-nowrap">
+                    <i class="fas fa-random mr-2"></i> 隨機抽題
+                </button>
+            </div>
+        </section>
+
+        <!-- 2. Practice Area -->
+        <div id="practiceArea" class="hidden space-y-6">
+            
+            <!-- Topic Content -->
+            <section class="card p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <span id="topicBadge" class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase">GENRE</span>
+                    <span id="topicYear" class="text-gray-400 text-sm font-mono">YEAR</span>
+                </div>
+                <h3 id="topicTitle" class="text-lg font-bold text-gray-800 mb-2">題目說明</h3>
+                <div id="topicDescription" class="text-gray-600 leading-relaxed bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <!-- Topic text goes here -->
+                </div>
+            </section>
+
+            <!-- ================= GUIDED MODE UI ================= -->
+            <div id="guidedModeUI" class="space-y-6">
+                <section class="card p-6 border-l-8 border-orange-400 bg-orange-50">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                            <span class="bg-orange-200 text-orange-700 w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm" id="stepNumber">1</span>
+                            引導式造句 (Guided Sentence)
+                        </h2>
+                        <div class="text-sm text-gray-500">
+                            Progress: <span id="progressText" class="font-mono font-bold">1/3</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl border-2 border-orange-100 shadow-sm mb-4">
+                        <div class="mb-3">
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Step 1: Use this Starter</span>
+                            <p id="guidedStarter" class="text-xl font-bold text-blue-600 font-serif mt-1 select-all cursor-pointer" onclick="copyText(this.innerText)">...</p>
+                        </div>
+                        <div class="border-t border-gray-100 pt-3">
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Step 2: Translate & Complete in English</span>
+                            <p id="guidedChinesePrompt" class="text-lg text-gray-700 mt-1">...</p>
+                        </div>
+                    </div>
+
+                    <textarea id="guidedInput" rows="3" class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400 outline-none resize-y text-lg" placeholder="Type the full English sentence here..."></textarea>
+                    
+                    <div class="mt-4 flex justify-between items-center">
+                        <span class="text-sm text-gray-400"><i class="fas fa-info-circle"></i> 點擊藍色起手式可直接複製</span>
+                        <button onclick="checkGuidedSentence()" class="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-lg font-bold shadow-lg transform hover:-translate-y-1 transition flex items-center">
+                            <i class="fas fa-check mr-2"></i> 檢查句子
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Guided Feedback Area -->
+                <section id="guidedFeedbackSection" class="hidden card p-6 border-2 border-purple-100">
+                    <div id="guidedLoading" class="hidden flex items-center justify-center py-4">
+                        <div class="loader mr-3"></div>
+                        <span class="text-gray-500">AI 老師正在批改中...</span>
+                    </div>
+                    <div id="guidedResult" class="hidden">
+                        <!-- Result injected here -->
+                    </div>
+                    <div id="nextStepBtnContainer" class="hidden mt-4 text-right">
+                        <button id="nextStepBtn" onclick="nextGuidedStep()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold transition">
+                            下一句 <i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </section>
+            </div>
+
+            <!-- ================= GUIDED SUMMARY UI (UPDATED) ================= -->
+            <div id="guidedSummaryUI" class="hidden space-y-6">
+                <section class="card p-6 border-l-8 border-teal-500 bg-white">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-teal-700">
+                            <i class="fas fa-clipboard-check mr-2"></i> 練習成果報告 (Summary)
+                        </h2>
+                        <button onclick="copySummary()" class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded transition">
+                            <i class="fas fa-copy mr-1"></i> 複製全部筆記
+                        </button>
+                    </div>
+                    
+                    <!-- NEW: Key Starters Recap Section -->
+                    <div class="mb-8 bg-teal-50 rounded-xl p-5 border border-teal-100">
+                        <h3 class="text-lg font-bold text-teal-800 mb-3 flex items-center">
+                            <i class="fas fa-gem mr-2 text-teal-500"></i> 本回金句錦囊 (Golden Starters)
+                        </h3>
+                        <div id="summaryStartersList" class="space-y-2">
+                            <!-- Starters will be listed here -->
+                        </div>
+                    </div>
+
+                    <h3 class="text-lg font-bold text-gray-700 mb-4 px-1 border-l-4 border-gray-400">
+                        &nbsp;詳細練習記錄 (Detailed Review)
+                    </h3>
+                    
+                    <div id="summaryContent" class="space-y-8">
+                        <!-- Detailed summary items injected here -->
+                    </div>
+
+                    <div class="mt-8 flex justify-center">
+                        <button onclick="resetToTopics()" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full font-bold shadow-lg transform hover:-translate-y-1 transition">
+                            <i class="fas fa-redo mr-2"></i> 練習其他題目
+                        </button>
+                    </div>
+                </section>
+            </div>
+
+            <!-- ================= FREE MODE UI ================= -->
+            <div id="freeModeUI" class="hidden space-y-6">
+                <!-- Scaffolding -->
+                <section class="card p-6 bg-gradient-to-br from-white to-blue-50 border border-blue-100">
+                    <h2 class="text-xl font-bold mb-3 flex items-center text-gray-800">
+                        <span class="bg-yellow-100 text-yellow-600 w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm">2</span>
+                        AI 推薦起手式 (Starters)
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="startersContainer"></div>
+                </section>
+
+                <!-- Writing Area -->
+                <section class="card p-6 border-l-8 border-green-500">
+                    <h2 class="text-xl font-bold mb-4 flex items-center text-gray-800">
+                        <span class="bg-green-100 text-green-600 w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm">3</span>
+                        自由寫作 (Free Writing)
+                    </h2>
+                    <textarea id="studentEssay" rows="10" class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-400 outline-none resize-y" placeholder="Start writing here..."></textarea>
+                    <div class="mt-4 flex justify-end">
+                        <button onclick="checkWriting()" class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-bold shadow-lg flex items-center">
+                            <i class="fas fa-magic mr-2"></i> AI 批閱全文
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Feedback Area -->
+                <section id="feedbackSection" class="hidden card p-6 border-2 border-purple-100">
+                    <h2 class="text-xl font-bold mb-4 flex items-center text-purple-700"><i class="fas fa-robot mr-3"></i> AI 批改結果</h2>
+                    <div id="loadingIndicator" class="hidden flex flex-col items-center justify-center py-8">
+                        <div class="loader mb-3"></div>
+                        <p class="text-gray-500 animate-pulse">AI 老師正在閱讀...</p>
+                    </div>
+                    <div id="feedbackContent" class="hidden feedback-content text-gray-700 space-y-4"></div>
+                </section>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="text-center text-gray-400 text-sm py-6">
+        <p>&copy; 2025 Fanny Teacher's English Class. Powered by Gemini.</p>
+    </footer>
+
+    <script>
+        // --- DATA SOURCE ---
+        const startersBank = {
+            exposition: [
+                { text: "According to the diagram displayed, ...", desc: "用於精準指出圖表資訊" },
+                { text: "In recent years, the way people ... has changed considerably.", desc: "用於描述趨勢改變" },
+                { text: "The reasons are as follows. First, ...", desc: "用於列舉原因" },
+                { text: "First and foremost, ... can function as ...", desc: "用於說明功能" }
+            ],
+            narrative: [
+                { text: "Suddenly, the glass doors burst open and ...", desc: "用於情節轉折" },
+                { text: "To my disappointment, I found myself ...", desc: "用於表達情緒轉變" },
+                { text: "Filled with anxiety, ... ran through the crowds.", desc: "用於描述動作與情緒" },
+                { text: "The picture depicts a scene where ...", desc: "用於描述圖片場景" }
+            ],
+            argumentative: [
+                { text: "Personally, I much prefer ...", desc: "表明個人偏好" },
+                { text: "As far as I am concerned, I believe ...", desc: "表達個人信念" },
+                { text: "In my opinion, ... is beneficial because ...", desc: "提出論點" },
+                { text: "Unless we take action, ... will ...", desc: "強調後果與行動" }
+            ],
+            conclusion: [
+                { text: "In a nutshell, ...", desc: "簡短總結" },
+                { text: "In conclusion, it is essential that ...", desc: "總結並呼籲" },
+                { text: "Only when we ... can we ...", desc: "倒裝句強調正面效果" }
+            ]
+        };
+
+        const examData = [
+            {
+                id: "108-gsat", year: "108 學測", type: "Exposition/Description",
+                title: "臺灣最讓你感到驕傲的是什麼？",
+                desc: "第一段描述這二個面向或事物，並說明它們為何讓你引以為榮；第二段則說明你認為可以用什麼方式來介紹或行銷這些臺灣特色。",
+                starters: [...startersBank.argumentative, ...startersBank.exposition],
+                guidedSentences: [
+                    { starter: "Speaking of Taiwan, the first thing that comes to mind is...", chinese: "說到台灣，我腦海中浮現的第一件事就是我們便利的夜市文化。" },
+                    { starter: "Moreover, it is essential that we introduce...", chinese: "此外，我們必須向國際遊客介紹這些獨特的地方美食，讓世界看見台灣。" },
+                    { starter: "Personally, I take great pride in...", chinese: "就個人而言，我對台灣人濃厚的人情味感到非常自豪。" }
+                ]
+            },
+            {
+                id: "108-ast", year: "108 指考", type: "Exposition (Chart)",
+                title: "美國青年新聞關注度圖表分析",
+                desc: "第一段描述圖表內容，並指出關注度較高及偏低的類別；第二段則描述你自己較為關注及較不關注的新聞主題分別為何，並說明理由。",
+                starters: [...startersBank.exposition, startersBank.argumentative[0]],
+                guidedSentences: [
+                    { starter: "According to the diagram displayed, ...", chinese: "根據顯示的圖表，娛樂新聞是最受美國年輕人關注的類別。" },
+                    { starter: "By contrast, the topic I spend least time on is...", chinese: "相比之下，我花最少時間關注的主題是國際政治，因為我覺得它太嚴肅了。" },
+                    { starter: "The reasons are as follows. First, ...", chinese: "原因如下。首先，社群媒體演算法傾向於推播輕鬆的內容給年輕用戶。" }
+                ]
+            },
+            {
+                id: "109-gsat", year: "109 學測", type: "Narrative (Picture)",
+                title: "賣場週年慶的故事",
+                desc: "第一段描述兩張圖片中所呈現的場景，以及正在發生的狀況；第二段則敘述該事件接下來的發展和結果。",
+                starters: [...startersBank.narrative, {text: "After the chaos subsided, ...", desc: "故事轉折"}],
+                guidedSentences: [
+                    { starter: "The picture shows a crowded department store where...", chinese: "這張圖片顯示了一間擁擠的百貨公司，那裡的人們正瘋狂地搶購特價商品。" },
+                    { starter: "Suddenly, the glass doors burst open and...", chinese: "突然間，玻璃門猛地被推開，外面的人群像潮水般湧入店內。" },
+                    { starter: "To my disappointment, I found myself...", chinese: "令我失望的是，我發現自己被擠到角落，什麼限量商品也沒搶到。" }
+                ]
+            },
+            {
+                id: "109-ast", year: "109 指考", type: "Exposition/Argumentative",
+                title: "校園安全維護",
+                desc: "第一段說明校園安全的重要性及可能發生的問題；第二段說明身為校園的一份子，應該採取哪些作為。",
+                starters: [...startersBank.argumentative, {text: "It is everyone's responsibility to ...", desc: "強調責任"}],
+                guidedSentences: [
+                    { starter: "First and foremost, campus safety is...", chinese: "首先，校園安全是所有學生能夠安心學習並快樂成長的基礎。" },
+                    { starter: "It is everyone's responsibility to...", chinese: "維護一個安全的學習環境是校園中每個成員的責任。" },
+                    { starter: "To improve this situation, it's important to...", chinese: "為了改善這種情況，定期檢查老舊的遊樂設施是很重要的。" }
+                ]
+            },
+            {
+                id: "110-gsat", year: "110 學測", type: "Description/Opinion",
+                title: "遊客踐踏花田景象",
+                desc: "第一段描述圖片內容(遊客到訪某場所)；第二段則以遊客或場所主人的立場，表達你對這件事情的看法。",
+                starters: [...startersBank.narrative, ...startersBank.argumentative],
+                guidedSentences: [
+                    { starter: "The picture depicts a scene where...", chinese: "這張圖片描繪了一個遊客們無視告示牌，為了拍照而踐踏花海的場景。" },
+                    { starter: "In my opinion, such behavior is... because...", chinese: "依我看來，這種行為是極度自私的，因為它為了個人的快樂而破壞了環境。" },
+                    { starter: "Only when we respect nature can we...", chinese: "只有當我們尊重自然，我們才能永續地享受這樣的美景。" }
+                ]
+            },
+            {
+                id: "110-ast", year: "110 指考", type: "Argumentative",
+                title: "英語講授專業課程 (EMI)",
+                desc: "第一段說明你是否認同這個趨勢並陳述理由；第二段說明如果你未來就讀的大學必修課是以英語授課，你將會如何因應。",
+                starters: [...startersBank.argumentative, {text: "To adapt to this change, I plan to ...", desc: "提出計畫"}],
+                guidedSentences: [
+                    { starter: "In recent years, the way students learn has changed with...", chinese: "近年來，隨著全英語授課政策的推行，學生學習專業科目的方式有了改變。" },
+                    { starter: "Personally, I much prefer...", chinese: "就個人而言，我更偏好母語授課，因為這樣能讓我更深入理解複雜的概念。" },
+                    { starter: "To prepare for English-taught courses, I plan to...", chinese: "為了為全英語授課做準備，我計畫在課前花更多時間預習相關詞彙。" }
+                ]
+            },
+            {
+                id: "111-gsat", year: "111 學測", type: "Description/Compare",
+                title: "理想公園的樣貌",
+                desc: "第一段描述圖A和圖B中的公園各有何特色；第二段說明你心目中理想公園的樣貌與特色。",
+                starters: [{text: "In contrast to picture A, picture B shows...", desc: "圖片對比"}, ...startersBank.argumentative],
+                guidedSentences: [
+                    { starter: "The two pictures given both show...", chinese: "提供的兩張圖片都展示了公園設施，但它們的設計理念截然不同。" },
+                    { starter: "Unlike the traditional playground in Picture A, Picture B...", chinese: "不像圖A中傳統的遊樂場，圖B呈現了一個更親近自然的環境。" },
+                    { starter: "For me, an ideal park is one where...", chinese: "對我來說，一個理想的公園是各個年齡層的人們都可以放鬆身心並與大自然連結的地方。" }
+                ]
+            },
+            {
+                id: "112-gsat", year: "112 學測", type: "Exposition/Opinion",
+                title: "表情符號 (Emoji) 的功能與誤會",
+                desc: "第一段說明人們何以喜歡使用表情符號及其功能；第二段討論可能造成的誤會或困擾，並提出化解方法。",
+                starters: [...startersBank.exposition, {text: "However, misunderstandings may arise when...", desc: "轉折說明問題"}],
+                guidedSentences: [
+                    { starter: "First and foremost, emojis can function as...", chinese: "首先，表情符號可以作為一種潤滑劑，讓文字訊息看起來比較不那麼嚴肅。" },
+                    { starter: "However, misunderstandings may arise when...", chinese: "然而，當不同世代對同一個圖案有不同解讀時，誤會就可能產生。" },
+                    { starter: "In a nutshell, ...", chinese: "簡言之，表情符號是有趣的工具，但我們使用時應謹慎以避免冒犯他人。" }
+                ]
+            },
+            {
+                id: "113-gsat", year: "113 學測", type: "Argumentative/Exposition",
+                title: "機器人小幫手解決青少年問題",
+                desc: "第一段說明你最想解決哪一個問題(課業/生活等)並解釋原因；第二段說明你希望機器人具備什麼特質來協助你。",
+                starters: [{text: "If I had a robot helper, I would choose to solve...", desc: "假設語氣"}, ...startersBank.argumentative],
+                guidedSentences: [
+                    { starter: "If I had the chance to..., I would choose to...", chinese: "如果我有機會擁有一個機器人幫手，我會選擇讓它幫我解決人際關係的困擾。" },
+                    { starter: "Among all the functions, I believe... will...", chinese: "在所有功能中，我相信情緒偵測功能將對我的心理健康有最大的幫助。" },
+                    { starter: "Moreover, it is essential that...", chinese: "此外，這個機器人必須具備同理心，這樣它才能真正理解我的感受。" }
+                ]
+            },
+            {
+                id: "114-gsat", year: "114 學測", type: "Description/Opinion",
+                title: "颱風假的情景與看法",
+                desc: "第一段根據對比圖片，描述颱風假時可能出現的兩種不同情景；第二段說明你對放颱風假的看法與經驗。",
+                starters: [{text: "On one hand, some people...; on the other hand...", desc: "對比句型"}, ...startersBank.argumentative],
+                guidedSentences: [
+                    { starter: "On one hand, some people...; on the other hand...", chinese: "一方面，有些人把颱風假視為去KTV狂歡的機會；另一方面，防災人員正冒著生命危險在工作。" },
+                    { starter: "As far as I am concerned, I believe...", chinese: "就個人而言，我相信颱風假應該是用來確保安全，而不是用來娛樂的。" },
+                    { starter: "In conclusion, the government gives us days off... for us to...", chinese: "總之，政府給我們放假是為了讓我們在家保持安全，我們應該密切關注新聞動態。" }
+                ]
+            }
+        ];
+
+        // --- GLOBAL VARIABLES ---
+        let currentMode = 'guided'; // 'guided' or 'free'
+        let currentStepIndex = 0;
+        let currentExam = null;
+        let guidedHistory = []; // Stores history for the summary
+
+        // --- DOM ELEMENTS ---
+        const examSelect = document.getElementById('examSelect');
+        const selectionSection = document.getElementById('selectionSection');
+        const practiceArea = document.getElementById('practiceArea');
+        const topicBadge = document.getElementById('topicBadge');
+        const topicYear = document.getElementById('topicYear');
+        const topicTitle = document.getElementById('topicTitle');
+        const topicDescription = document.getElementById('topicDescription');
+        
+        // Guided Mode Elements
+        const guidedModeUI = document.getElementById('guidedModeUI');
+        const guidedStarter = document.getElementById('guidedStarter');
+        const guidedChinesePrompt = document.getElementById('guidedChinesePrompt');
+        const guidedInput = document.getElementById('guidedInput');
+        const guidedFeedbackSection = document.getElementById('guidedFeedbackSection');
+        const guidedLoading = document.getElementById('guidedLoading');
+        const guidedResult = document.getElementById('guidedResult');
+        const nextStepBtnContainer = document.getElementById('nextStepBtnContainer');
+        const nextStepBtn = document.getElementById('nextStepBtn');
+        const stepNumber = document.getElementById('stepNumber');
+        const progressText = document.getElementById('progressText');
+        
+        // Guided Summary Elements
+        const guidedSummaryUI = document.getElementById('guidedSummaryUI');
+        const summaryStartersList = document.getElementById('summaryStartersList');
+        const summaryContent = document.getElementById('summaryContent');
+
+        // Free Mode Elements
+        const freeModeUI = document.getElementById('freeModeUI');
+        const startersContainer = document.getElementById('startersContainer');
+        const studentEssay = document.getElementById('studentEssay');
+
+        // --- INITIALIZATION ---
+        // Populate Dropdown
+        examData.forEach((exam, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = `【${exam.year}】${exam.title}`;
+            examSelect.appendChild(option);
+        });
+
+        examSelect.addEventListener('change', (e) => loadTopic(e.target.value));
+
+        function switchMode(mode) {
+            currentMode = mode;
+            // Update Buttons
+            document.getElementById('btnGuided').className = mode === 'guided' ? 'mode-btn active px-6 py-2 rounded-full font-bold transition flex items-center shadow-sm' : 'mode-btn px-6 py-2 rounded-full font-bold transition flex items-center shadow-sm';
+            document.getElementById('btnFree').className = mode === 'free' ? 'mode-btn active px-6 py-2 rounded-full font-bold transition flex items-center shadow-sm' : 'mode-btn px-6 py-2 rounded-full font-bold transition flex items-center shadow-sm';
+
+            if (examSelect.value !== "") {
+                loadTopic(examSelect.value);
+            }
+        }
+
+        function loadTopic(index) {
+            const exam = examData[index];
+            if (!exam) return;
+            currentExam = exam;
+            currentStepIndex = 0; // Reset progress
+            guidedHistory = [];   // Reset history
+
+            // Update Header Info
+            practiceArea.classList.remove('hidden');
+            topicBadge.textContent = exam.type;
+            topicYear.textContent = exam.year;
+            topicTitle.textContent = exam.title;
+            topicDescription.textContent = exam.desc;
+
+            // Toggle UI based on Mode
+            if (currentMode === 'guided') {
+                guidedModeUI.classList.remove('hidden');
+                guidedSummaryUI.classList.add('hidden'); // Ensure summary is hidden
+                freeModeUI.classList.add('hidden');
+                loadGuidedStep();
+            } else {
+                guidedModeUI.classList.add('hidden');
+                guidedSummaryUI.classList.add('hidden');
+                freeModeUI.classList.remove('hidden');
+                loadFreeMode(exam);
+            }
+            
+            practiceArea.scrollIntoView({behavior: 'smooth'});
+        }
+
+        // --- GUIDED MODE LOGIC ---
+        function loadGuidedStep() {
+            const stepData = currentExam.guidedSentences[currentStepIndex];
+            
+            stepNumber.textContent = currentStepIndex + 1;
+            progressText.textContent = `${currentStepIndex + 1}/${currentExam.guidedSentences.length}`;
+            
+            guidedStarter.innerText = stepData.starter;
+            guidedChinesePrompt.innerText = stepData.chinese;
+            
+            // Reset input and feedback
+            guidedInput.value = "";
+            guidedFeedbackSection.classList.add('hidden');
+            guidedResult.innerHTML = "";
+            nextStepBtnContainer.classList.add('hidden');
+        }
+
+        async function checkGuidedSentence() {
+            const text = guidedInput.value.trim();
+            if (text.length < 5) {
+                alert("句子好像太短了，請完整造句！");
+                return;
+            }
+
+            const stepData = currentExam.guidedSentences[currentStepIndex];
+
+            // UI Loading
+            guidedFeedbackSection.classList.remove('hidden');
+            guidedLoading.classList.remove('hidden');
+            guidedResult.classList.add('hidden');
+            nextStepBtnContainer.classList.add('hidden');
+
+            const apiKey = ""; 
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+            const prompt = `
+            Role: Fanny Teacher (Encouraging).
+            Task: Correct a single sentence translation.
+            
+            Target Meaning (Chinese): "${stepData.chinese}"
+            Required Starter: "${stepData.starter}"
+            Student Answer: "${text}"
+
+            Output JSON (Traditional Chinese):
+            {
+                "score": "1-5 (5 is perfect)",
+                "feedback": "Brief comment on grammar/meaning",
+                "correction": "The correct/better English sentence",
+                "is_starter_used": true/false
+            }
+            `;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API 連線錯誤: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+                    throw new Error("AI 回傳了空資料，請稍後再試。");
+                }
+
+                let resultText = data.candidates[0].content.parts[0].text;
+                
+                // Aggressive cleaning to fix malformed JSON strings
+                resultText = resultText.replace(/```json/g, '').replace(/```/g, '').trim();
+                
+                // Try to extract JSON if it's wrapped in other text
+                const jsonMatch = resultText.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    resultText = jsonMatch[0];
+                }
+
+                let result;
+                try {
+                    result = JSON.parse(resultText);
+                } catch (e) {
+                    console.error("JSON Parse Error:", e);
+                    console.log("Raw Text:", resultText);
+                    throw new Error("AI 回傳格式錯誤，請重試。");
+                }
+                
+                // Save to History
+                guidedHistory.push({
+                    step: currentStepIndex + 1,
+                    starter: stepData.starter,
+                    student: text,
+                    correction: result.correction,
+                    feedback: result.feedback,
+                    chinese: stepData.chinese
+                });
+
+                renderGuidedFeedback(result);
+
+            } catch (err) {
+                alert(err.message || "AI 連線失敗，請重試");
+                console.error(err);
+                guidedLoading.classList.add('hidden');
+            }
+        }
+
+        function renderGuidedFeedback(data) {
+            guidedLoading.classList.add('hidden');
+            guidedResult.classList.remove('hidden');
+
+            const scoreColor = data.score >= 4 ? 'text-green-600' : 'text-orange-500';
+            const icon = data.score >= 4 ? '<i class="fas fa-star"></i>' : '<i class="fas fa-hammer"></i>';
+
+            guidedResult.innerHTML = `
+                <div class="flex items-center gap-4 mb-3">
+                    <div class="text-3xl font-bold ${scoreColor}">${icon} ${data.score}/5</div>
+                    <div class="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-lg">
+                        ${data.is_starter_used ? '<i class="fas fa-check text-green-500"></i> 已使用起手式' : '<i class="fas fa-times text-red-500"></i> 未使用指定起手式'}
+                    </div>
+                </div>
+                <p class="font-bold text-gray-800 mb-1">Fanny 老師的回饋：</p>
+                <p class="text-gray-700 mb-3">${data.feedback}</p>
+                <div class="bg-green-50 p-3 rounded border-l-4 border-green-400">
+                    <p class="text-xs text-gray-500 font-bold uppercase">建議寫法 / Better Version</p>
+                    <p class="text-green-700 font-medium text-lg">${data.correction}</p>
+                </div>
+            `;
+            
+            // Show Next Button
+            nextStepBtnContainer.classList.remove('hidden');
+            
+            // Check if it's the last step
+            if (currentStepIndex >= currentExam.guidedSentences.length - 1) {
+                nextStepBtn.innerHTML = '查看成果報告 <i class="fas fa-clipboard-list ml-2"></i>';
+                nextStepBtn.onclick = showGuidedSummary;
+            } else {
+                nextStepBtn.innerHTML = '下一句 <i class="fas fa-arrow-right ml-2"></i>';
+                nextStepBtn.onclick = nextGuidedStep;
+            }
+        }
+
+        function nextGuidedStep() {
+            currentStepIndex++;
+            loadGuidedStep();
+            document.getElementById('guidedModeUI').scrollIntoView({behavior:'smooth'});
+        }
+
+        // --- SUMMARY LOGIC (REVISED) ---
+        function showGuidedSummary() {
+            guidedModeUI.classList.add('hidden');
+            guidedSummaryUI.classList.remove('hidden');
+            
+            // 1. Render Golden Starters List
+            summaryStartersList.innerHTML = guidedHistory.map((item, idx) => `
+                <div class="flex items-start">
+                    <span class="bg-teal-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs mr-3 flex-shrink-0 mt-1">${idx+1}</span>
+                    <div>
+                        <p class="font-bold text-gray-800 font-serif text-lg">${item.starter}</p>
+                        <p class="text-sm text-gray-500">適用情境：${idx === 0 ? "開頭 / 現象描述" : (idx === 1 ? "論點闡述 / 轉折" : "總結 / 建議")}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            // 2. Render Detailed Cards
+            summaryContent.innerHTML = guidedHistory.map((item, idx) => `
+                <div class="bg-white border rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                    <!-- Prominent Header with Starter -->
+                    <div class="bg-blue-50 px-6 py-4 border-b border-blue-100">
+                        <p class="text-xs font-bold text-blue-500 uppercase tracking-wider mb-1"><i class="fas fa-key mr-1"></i> Sentence Starter #${item.step}</p>
+                        <p class="text-xl font-bold text-blue-800 font-serif leading-snug">${item.starter}</p>
+                    </div>
+                    
+                    <div class="p-6 space-y-4">
+                        <!-- Target -->
+                        <div class="flex items-start">
+                            <div class="min-w-[4px] h-full bg-gray-300 mr-3 rounded-full self-stretch"></div>
+                            <div>
+                                <p class="text-xs font-bold text-gray-400 uppercase">Target Meaning (中文)</p>
+                                <p class="text-gray-700 text-lg">${item.chinese}</p>
+                            </div>
+                        </div>
+
+                        <!-- Comparison Grid -->
+                        <div class="grid md:grid-cols-2 gap-4 pt-2">
+                            <div class="bg-red-50 p-4 rounded-lg">
+                                <p class="text-xs font-bold text-red-500 uppercase mb-1"><i class="fas fa-user-edit mr-1"></i> Your Draft</p>
+                                <p class="text-gray-800 font-medium">${item.student}</p>
+                            </div>
+                            <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                                <p class="text-xs font-bold text-green-600 uppercase mb-1"><i class="fas fa-check-circle mr-1"></i> Fanny Teacher's Revision</p>
+                                <p class="text-green-800 font-medium">${item.correction}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            guidedSummaryUI.scrollIntoView({behavior:'smooth'});
+        }
+
+        function resetToTopics() {
+            practiceArea.classList.add('hidden');
+            selectionSection.scrollIntoView({behavior:'smooth'});
+            // Reset selection optional
+            examSelect.value = "";
+        }
+
+        function copySummary() {
+            let textToCopy = "【英文作文起手式 - 學習筆記】\n\n=== 核心句型 (Golden Starters) ===\n";
+            guidedHistory.forEach((item, idx) => {
+                textToCopy += `${idx + 1}. ${item.starter}\n`;
+            });
+            
+            textToCopy += "\n=== 詳細練習記錄 ===\n";
+            
+            textToCopy += guidedHistory.map(item => 
+                `[句型 #${item.step}]\nStarter: ${item.starter}\n中文: ${item.chinese}\n學生: ${item.student}\n修正: ${item.correction}\n`
+            ).join('\n-------------------\n');
+            
+            copyText(textToCopy);
+        }
+
+        // --- FREE MODE LOGIC (Original) ---
+        function loadFreeMode(exam) {
+            startersContainer.innerHTML = '';
+            const allStarters = [...exam.starters, ...startersBank.conclusion];
+            const uniqueStarters = allStarters.filter((v,i,a)=>a.findIndex(t=>(t.text===v.text))===i);
+
+            uniqueStarters.forEach(starter => {
+                const div = document.createElement('div');
+                div.className = "starter-pill border border-gray-200 bg-white p-3 rounded-lg shadow-sm flex flex-col group";
+                div.onclick = () => copyText(starter.text);
+                div.innerHTML = `
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider group-hover:text-blue-500">${starter.desc}</span>
+                        <i class="fas fa-copy text-gray-300 group-hover:text-blue-500"></i>
+                    </div>
+                    <p class="text-gray-800 font-medium font-serif text-sm md:text-base select-all">${starter.text}</p>
+                `;
+                startersContainer.appendChild(div);
+            });
+            studentEssay.value = '';
+            document.getElementById('feedbackSection').classList.add('hidden');
+        }
+
+        async function checkWriting() {
+            const text = studentEssay.value.trim();
+            if (text.length < 20) { alert("請至少寫 20 個字才能批改喔！"); return; }
+            
+            // UI setup for free mode
+            const feedbackSection = document.getElementById('feedbackSection');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const feedbackContent = document.getElementById('feedbackContent');
+            feedbackSection.classList.remove('hidden');
+            loadingIndicator.classList.remove('hidden');
+            feedbackContent.classList.add('hidden');
+            feedbackSection.scrollIntoView({behavior: 'smooth'});
+
+            const apiKey = "";
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const prompt = `Role: Fanny Teacher. Task: Grade Essay. Topic: ${currentExam.title}. Essay: "${text}". Output JSON: { "score": "1-10", "general_comment": "...", "corrections": [{"original": "...", "correction": "...", "reason": "..."}], "structure_feedback": "..." }`;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+                    throw new Error("No data received from AI");
+                }
+
+                let resultText = data.candidates[0].content.parts[0].text;
+                resultText = resultText.replace(/```json/g, '').replace(/```/g, '').trim();
+                
+                // Extract JSON if wrapped
+                const jsonMatch = resultText.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    resultText = jsonMatch[0];
+                }
+
+                let result;
+                try {
+                    result = JSON.parse(resultText);
+                } catch (e) {
+                    console.error("JSON Parse Error (Free Mode):", e);
+                    throw new Error("AI response format error. Please try again.");
+                }
+
+                renderFreeFeedback(result);
+
+            } catch (err) {
+                console.error(err);
+                loadingIndicator.classList.add('hidden');
+                alert(err.message || "AI Connection Error");
+            }
+        }
+
+        function renderFreeFeedback(data) {
+            const feedbackContent = document.getElementById('feedbackContent');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            
+            let correctionsHtml = data.corrections && data.corrections.length > 0 ? 
+                `<ul class="space-y-3">${data.corrections.map(c => `<li class="bg-red-50 p-3 rounded border-l-4 border-red-400"><div class="text-red-500 line-through text-sm">${c.original}</div><div class="text-green-600 font-bold flex items-center gap-2"><i class="fas fa-check-circle"></i> ${c.correction}</div><div class="text-gray-500 text-xs mt-1">${c.reason}</div></li>`).join('')}</ul>` : 
+                `<p class="text-green-600 font-bold">No major errors found!</p>`;
+
+            feedbackContent.innerHTML = `
+                <div class="flex items-center justify-between mb-4 border-b pb-2"><span class="text-2xl font-bold text-blue-600">評分: ${data.score}/10</span></div>
+                <div class="mb-4"><h3>總評</h3><p>${data.general_comment}</p></div>
+                <div class="mb-4"><h3>修正</h3>${correctionsHtml}</div>
+                <div><h3>結構</h3><p>${data.structure_feedback}</p></div>
+            `;
+            loadingIndicator.classList.add('hidden');
+            feedbackContent.classList.remove('hidden');
+        }
+
+        function pickRandomTopic() {
+            const randomIndex = Math.floor(Math.random() * examData.length);
+            examSelect.value = randomIndex;
+            loadTopic(randomIndex);
+        }
+
+        function copyText(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed"; 
+            textArea.style.left = "-9999px";
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                alert("已複製: " + text);
+            } catch (err) {
+                prompt("Ctrl+C to copy:", text);
+            }
+            document.body.removeChild(textArea);
+        }
+    </script>
+</body>
+</html>
